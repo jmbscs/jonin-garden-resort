@@ -1,21 +1,58 @@
 let authModal = null;
 
+// Replace getCurrentUser() with this
 function getCurrentUser() {
   try {
     const stored = localStorage.getItem('joNinCurrentUser');
-    if (!stored) {
-      const guest = {
-        id: 'guest_' + Math.random().toString(36).substr(2, 9),
-        name: 'Guest',
-        email: ''
-      };
-      localStorage.setItem('joNinCurrentUser', JSON.stringify(guest));
-      return guest;
-    }
-    return JSON.parse(stored);
+    return stored ? JSON.parse(stored) : null;
   } catch (err) {
-    return { id: 'guest', name: 'Guest', email: '' };
+    return null;
   }
+}
+
+// Add this — called when register form is submitted
+async function registerUser(name, email, password) {
+  const res    = await fetch('backend/register.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name, email, password })
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    // Save to localStorage so they're "logged in" right away
+    localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
+    showToast('Account created! Welcome, ' + data.user.name);
+    closeModal();
+    location.reload();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+// Add this — called when login form is submitted
+async function loginUser(email, password) {
+  const res  = await fetch('backend/login.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ email, password })
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
+    showToast('Welcome back, ' + data.user.name + '!');
+    closeModal();
+    location.reload();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+// Logout
+function logout() {
+  localStorage.removeItem('joNinCurrentUser');
+  window.location.href = 'homepage_index.html';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -91,4 +128,31 @@ function checkLoginAndBook() {
   } else {
     window.location.href = 'booking_index.html';
   }
+}
+
+function handleLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    showToast('Please fill in all fields.', 'error');
+    return;
+  }
+
+  loginUser(email, password);
+}
+
+function handleRegister() {
+  const firstName = document.getElementById('reg-firstname').value.trim();
+  const lastName  = document.getElementById('reg-lastname').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const password  = document.getElementById('reg-password').value;
+
+  if (!firstName || !lastName || !email || !password) {
+    showToast('Please fill in all fields.', 'error');
+    return;
+  }
+
+  const fullName = firstName + ' ' + lastName;
+  registerUser(fullName, email, password);
 }

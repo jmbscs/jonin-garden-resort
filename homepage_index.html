@@ -36,15 +36,16 @@
         <button class="tab active">Login</button>
         <button class="tab" onclick="switchCard('register')">Register</button>
       </div>
-      <div class="auth-field">
-        <label>Username</label>
-        <input type="text" placeholder="Enter your username">
-      </div>
-      <div class="auth-field">
-        <label>Password</label>
-        <input type="password" placeholder="Enter your password">
-      </div>
-      <button class="auth-btn" onclick="switchCard('otp')">Login</button>
+      <!-- AFTER -->
+<div class="auth-field">
+  <label>Email</label>
+  <input type="email" id="login-email" placeholder="Enter your email">
+</div>
+<div class="auth-field">
+  <label>Password</label>
+  <input type="password" id="login-password" placeholder="Enter your password">
+</div>
+<button class="auth-btn" onclick="handleLogin()">Login</button>
       <div class="divider">or</div>
       <button class="admin-btn" onclick="switchCard('admin')">
         <span class="admin-icon">A</span> Admin / Staff Portal <span class="staff-badge">STAFF</span>
@@ -61,14 +62,14 @@
         <button class="tab" onclick="switchCard('login')">Login</button>
         <button class="tab active">Register</button>
       </div>
-      <div class="auth-row">
-        <div class="auth-field"><label>First name</label><input type="text" placeholder="First"></div>
-        <div class="auth-field"><label>Last name</label><input type="text" placeholder="Last"></div>
-      </div>
-      <div class="auth-field"><label>Email</label><input type="email" placeholder="yourname@gmail.com"></div>
-      <div class="auth-field"><label>Username</label><input type="text" placeholder="Choose a username"></div>
-      <div class="auth-field"><label>Password</label><input type="password" placeholder="Create a password"></div>
-      <button class="auth-btn" onclick="switchCard('otp')">Create account</button>
+      <!-- AFTER -->
+    <div class="auth-row">
+      <div class="auth-field"><label>First name</label><input type="text" id="reg-firstname" placeholder="First"></div>
+      <div class="auth-field"><label>Last name</label><input type="text" id="reg-lastname" placeholder="Last"></div>
+    </div>
+    <div class="auth-field"><label>Email</label><input type="email" id="reg-email" placeholder="yourname@gmail.com"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="reg-password" placeholder="Create a password"></div>
+    <button class="auth-btn" onclick="handleRegister()">Create account</button> 
       <p class="auth-switch">Already registered? <span onclick="switchCard('login')">Login here</span></p>
     </div>
 

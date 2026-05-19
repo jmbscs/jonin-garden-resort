@@ -4,19 +4,55 @@ let currentQRCode = null;
 let currentBookingData = null;
 
 // Load saved bookings from localStorage
-function loadBookings() {
-    const saved = localStorage.getItem('joNinBookings');
-    if (saved) {
-        userBookings = JSON.parse(saved);
-    } else {
-        // Add some sample bookings for demo
-        userBookings = [];
+async function loadBookingsFromServer() {
+  try {
+    const response = await fetch('backend/get_bookings.php');
+    const result   = await response.json();
+
+    if (result.success) {
+      userBookings = result.bookings; // your existing variable
+      renderBookingsList();             // your existing render function
     }
+  } catch (err) {
+    console.error('Could not load bookings:', err);
+  }
 }
 
+// Call it on page load instead of loadBookings()
+document.addEventListener('DOMContentLoaded', () => {
+  loadBookingsFromServer();
+});
+
 // Save bookings to localStorage
-function saveBookings() {
-    localStorage.setItem('joNinBookings', JSON.stringify(userBookings));
+async function submitBookingToServer(bookingData) {
+  try {
+    const response = await fetch('backend/create_booking.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(bookingData)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Use the real booking ref from the server
+      bookingData.id  = result.bookingRef;
+      bookingData.qrData = result.qrData;
+
+      showToast('Booking confirmed! Ref: ' + result.bookingRef, 'success');
+      // Continue with your QR code generation here...
+      return result;
+
+    } else {
+      showToast('Booking failed: ' + result.message, 'error');
+      return null;
+    }
+
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+    console.error(err);
+    return null;
+  }
 }
 
 // Get current user (using localStorage for demo)
