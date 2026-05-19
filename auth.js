@@ -1,5 +1,13 @@
 let authModal = null;
 
+function authToast(message, type = 'success') {
+  if (typeof showToast === 'function') {
+    showToast(message, type);
+  } else {
+    alert(message); // fallback
+  }
+}
+
 // Replace getCurrentUser() with this
 function getCurrentUser() {
   try {
@@ -71,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function openModal() {
   const user = getCurrentUser();
-  if (user.name !== 'Guest') {
+  // user can be null now, so check for null first
+  if (user && user.name !== 'Guest') {
     window.location.href = 'booking_index.html';
     return;
   }
@@ -123,7 +132,8 @@ function closeModal() {
 
 function checkLoginAndBook() {
   const user = getCurrentUser();
-  if (user.name === 'Guest') {
+  // user can be null now
+  if (!user || user.name === 'Guest') {
     openModal();
   } else {
     window.location.href = 'booking_index.html';
@@ -135,10 +145,9 @@ function handleLogin() {
   const password = document.getElementById('login-password').value;
 
   if (!email || !password) {
-    showToast('Please fill in all fields.', 'error');
+    authToast('Please fill in all fields.', 'error');
     return;
   }
-
   loginUser(email, password);
 }
 
@@ -149,7 +158,7 @@ function handleRegister() {
   const password  = document.getElementById('reg-password').value;
 
   if (!firstName || !lastName || !email || !password) {
-    showToast('Please fill in all fields.', 'error');
+    authToast('Please fill in all fields.', 'error');
     return;
   }
 
