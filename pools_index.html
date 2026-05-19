@@ -44,23 +44,22 @@
       <p class="auth-switch">No account? <span onclick="switchCard('register')">Register here</span></p>
     </div>
     <div id="card-register" class="card">
-      <div class="auth-logo">&#127774;</div>
-      <p class="auth-title">Join us!</p>
-      <p class="auth-sub">Create your guest account</p>
-      <div class="tab-row">
-        <button class="tab" onclick="switchCard('login')">Login</button>
-        <button class="tab active">Register</button>
-      </div>
-      <div class="auth-row">
-        <div class="auth-field"><label>First name</label><input type="text" placeholder="First"></div>
-        <div class="auth-field"><label>Last name</label><input type="text" placeholder="Last"></div>
-      </div>
-      <div class="auth-field"><label>Email</label><input type="email" placeholder="yourname@gmail.com"></div>
-      <div class="auth-field"><label>Username</label><input type="text" placeholder="Choose a username"></div>
-      <div class="auth-field"><label>Password</label><input type="password" placeholder="Create a password"></div>
-      <button class="auth-btn" onclick="switchCard('otp')">Create account</button>
-      <p class="auth-switch">Already registered? <span onclick="switchCard('login')">Login here</span></p>
-    </div>
+  <div class="auth-logo">&#127774;</div>
+  <p class="auth-title">Join us!</p>
+  <p class="auth-sub">Create your guest account</p>
+  <div class="tab-row">
+    <button class="tab" onclick="switchCard('login')">Login</button>
+    <button class="tab active">Register</button>
+  </div>
+  <div class="auth-row">
+    <div class="auth-field"><label>First name</label><input type="text" id="reg-firstname" placeholder="First"></div>
+    <div class="auth-field"><label>Last name</label><input type="text" id="reg-lastname" placeholder="Last"></div>
+  </div>
+  <div class="auth-field"><label>Email</label><input type="email" id="reg-email" placeholder="yourname@gmail.com"></div>
+  <div class="auth-field"><label>Password</label><input type="password" id="reg-password" placeholder="Create a password"></div>
+  <button class="auth-btn" onclick="handleRegister()">Create account</button>
+  <p class="auth-switch">Already registered? <span onclick="switchCard('login')">Login here</span></p>
+</div>
     <div id="card-otp" class="card">
       <div class="auth-logo">&#128274;</div>
       <p class="auth-title">Verify OTP</p>
@@ -73,7 +72,14 @@
         <input class="otp-box" maxlength="1" type="text">
         <input class="otp-box" maxlength="1" type="text">
       </div>
-      <button class="auth-btn">Verify &amp; Continue</button>
+      <button class="auth-btn" onclick="verifyOTP()">Verify & Create Account</button>
+      <p style="margin-top:12px;text-align:center;font-size:13px">
+        Didn't get the code?
+        <button id="resend-otp-btn" onclick="resendOTP()"
+          style="background:none;border:none;color:#1B6B3A;font-weight:600;cursor:pointer">
+          Resend OTP
+        </button>
+      </p>
       <p class="auth-sub" style="margin-top:0.8rem;margin-bottom:0;">Didn't receive it? <span class="resend-link">Resend code</span></p>
       <p class="back-link" onclick="switchCard('login')">&#8592; Back to login</p>
     </div>
@@ -190,9 +196,7 @@
   <p class="footer-copy">© 2026 Jo-Nin Garden Resort. All rights reserved.</p>
 </footer>
 
-<script src="pools_script.js"></script>
-</body>
-<script src="auth.js"></script>
+
 
 <!-- CHATBOT -->
 <div id="jo-chatbot">
@@ -230,6 +234,8 @@
     </div>
   </div>
 </div>
+<script src="pools_script.js"></script>
+<script src="auth.js"></script>
 <script src="chatbot_script.js"></script>
 </body>
 </html>
