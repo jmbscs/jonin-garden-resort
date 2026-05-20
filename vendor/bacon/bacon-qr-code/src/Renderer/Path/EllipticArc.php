@@ -7,22 +7,57 @@ final class EllipticArc implements OperationInterface
 {
     private const ZERO_TOLERANCE = 1e-05;
 
-    private float $xRadius;
-    private float $yRadius;
-    private float $xAxisAngle;
+    /**
+     * @var float
+     */
+    private $xRadius;
+
+    /**
+     * @var float
+     */
+    private $yRadius;
+
+    /**
+     * @var float
+     */
+    private $xAxisAngle;
+
+    /**
+     * @var bool
+     */
+    private $largeArc;
+
+    /**
+     * @var bool
+     */
+    private $sweep;
+
+    /**
+     * @var float
+     */
+    private $x;
+
+    /**
+     * @var float
+     */
+    private $y;
 
     public function __construct(
-        float                  $xRadius,
-        float                  $yRadius,
-        float                  $xAxisAngle,
-        private readonly bool  $largeArc,
-        private readonly bool  $sweep,
-        private readonly float $x,
-        private readonly float $y
+        float $xRadius,
+        float $yRadius,
+        float $xAxisAngle,
+        bool $largeArc,
+        bool $sweep,
+        float $x,
+        float $y
     ) {
         $this->xRadius = abs($xRadius);
         $this->yRadius = abs($yRadius);
         $this->xAxisAngle = $xAxisAngle % 360;
+        $this->largeArc = $largeArc;
+        $this->sweep = $sweep;
+        $this->x = $x;
+        $this->y = $y;
     }
 
     public function getXRadius() : float
@@ -73,27 +108,6 @@ final class EllipticArc implements OperationInterface
             $this->sweep,
             $this->x + $x,
             $this->y + $y
-        );
-    }
-
-    /**
-     * @return self
-     */
-    public function rotate(int $degrees) : OperationInterface
-    {
-        $radians = deg2rad($degrees);
-        $sin = sin($radians);
-        $cos = cos($radians);
-        $xr = $this->x * $cos - $this->y * $sin;
-        $yr = $this->x * $sin + $this->y * $cos;
-        return new self(
-            $this->xRadius,
-            $this->yRadius,
-            $this->xAxisAngle,
-            $this->largeArc,
-            $this->sweep,
-            $xr,
-            $yr
         );
     }
 
@@ -165,7 +179,7 @@ final class EllipticArc implements OperationInterface
     /**
      * @return float[]
      */
-    private function calculateCenterPointParameters(float $fromX, float $fromY, float $xAngle): array
+    private function calculateCenterPointParameters(float $fromX, float $fromY, float $xAngle)
     {
         $rX = $this->xRadius;
         $rY = $this->yRadius;
@@ -213,10 +227,8 @@ final class EllipticArc implements OperationInterface
         $delta = self::angle(($x1p - $cxp) / $rX, ($y1p - $cyp) / $rY, (-$x1p - $cxp) / $rX, (-$y1p - $cyp) / $rY);
         $delta = fmod($delta, pi() * 2);
 
-        if (! $this->sweep && $delta > 0) {
+        if (! $this->sweep) {
             $delta -= 2 * pi();
-        } elseif ($this->sweep && $delta < 0) {
-            $delta += 2 * pi();
         }
 
         return [$cx, $cy, $rX, $rY, $theta, $delta];

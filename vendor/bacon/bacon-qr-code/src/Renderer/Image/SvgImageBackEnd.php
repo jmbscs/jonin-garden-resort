@@ -20,20 +20,30 @@ final class SvgImageBackEnd implements ImageBackEndInterface
 {
     private const PRECISION = 3;
 
-    private ?XMLWriter $xmlWriter;
+    /**
+     * @var XMLWriter|null
+     */
+    private $xmlWriter;
 
-    private ?array $stack;
+    /**
+     * @var int[]|null
+     */
+    private $stack;
 
-    private ?int $currentStack;
+    /**
+     * @var int|null
+     */
+    private $currentStack;
 
-    private ?int $gradientCount;
+    /**
+     * @var int|null
+     */
+    private $gradientCount;
 
     public function __construct()
     {
         if (! class_exists(XMLWriter::class)) {
-            throw new RuntimeException(
-                'You need to install the libxml extension and enable the xmlwriter extension to use this back end'
-            );
+            throw new RuntimeException('You need to install the libxml extension to use this back end');
         }
     }
 
@@ -316,11 +326,7 @@ final class SvgImageBackEnd implements ImageBackEndInterface
                 break;
         }
 
-        $toBeHashed = $this->getColorString($startColor) . $this->getColorString($endColor) . $gradient->getType();
-        if ($startColor instanceof Alpha) {
-            $toBeHashed .= (string) $startColor->getAlpha();
-        }
-        $id = sprintf('g%d-%s', ++$this->gradientCount, hash('xxh3', $toBeHashed));
+        $id = sprintf('g%d', ++$this->gradientCount);
         $this->xmlWriter->writeAttribute('id', $id);
 
         $this->xmlWriter->startElement('stop');

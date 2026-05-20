@@ -6,17 +6,17 @@ namespace Endroid\QrCode\ImageData;
 
 use Endroid\QrCode\Label\LabelInterface;
 
-final readonly class LabelImageData
+class LabelImageData
 {
     private function __construct(
         private int $width,
-        private int $height,
+        private int $height
     ) {
     }
 
     public static function createForLabel(LabelInterface $label): self
     {
-        if (str_contains($label->getText(), "\n")) {
+        if (false !== strpos($label->getText(), "\n")) {
             throw new \Exception('Label does not support line breaks');
         }
 

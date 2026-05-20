@@ -3,6 +3,9 @@ declare(strict_types = 1);
 
 namespace BaconQrCode\Encoder;
 
+use BaconQrCode\Common\BitUtils;
+use BaconQrCode\Exception\InvalidArgumentException;
+
 /**
  * Mask utility.
  */
@@ -11,10 +14,10 @@ final class MaskUtil
     /**#@+
      * Penalty weights from section 6.8.2.1
      */
-    public const N1 = 3;
-    public const N2 = 3;
-    public const N3 = 40;
-    public const N4 = 10;
+    const N1 = 3;
+    const N2 = 3;
+    const N3 = 40;
+    const N4 = 10;
     /**#@-*/
 
     private function __construct()
@@ -169,7 +172,7 @@ final class MaskUtil
 
         $numTotalCells = $height * $width;
         $darkRatio = $numDarkCells / $numTotalCells;
-        $fixedPercentVariances = (int) floor(abs($darkRatio - 0.5) * 20);
+        $fixedPercentVariances = (int) (abs($darkRatio - 0.5) * 20);
 
         return $fixedPercentVariances * self::N4;
     }
@@ -178,19 +181,52 @@ final class MaskUtil
      * Returns the mask bit for "getMaskPattern" at "x" and "y".
      *
      * See 8.8 of JISX0510:2004 for mask pattern conditions.
+     *
+     * @throws InvalidArgumentException if an invalid mask pattern was supplied
      */
     public static function getDataMaskBit(int $maskPattern, int $x, int $y) : bool
     {
-        return 0 === match ($maskPattern) {
-            0 => ($x + $y) % 2,
-            1 => $y % 2,
-            2 => $x % 3,
-            3 => ($x + $y) % 3,
-            4 => (intdiv($y, 2) + intdiv($x, 3)) % 2,
-            5 => (($x * $y) % 2) + (($x * $y) % 3),
-            6 => ((($x * $y) % 2) + (($x * $y) % 3)) % 2,
-            7 => ((($x + $y) % 2) + (($x * $y) % 3)) % 2,
-        };
+        switch ($maskPattern) {
+            case 0:
+                $intermediate = ($y + $x) & 0x1;
+                break;
+
+            case 1:
+                $intermediate = $y & 0x1;
+                break;
+
+            case 2:
+                $intermediate = $x % 3;
+                break;
+
+            case 3:
+                $intermediate = ($y + $x) % 3;
+                break;
+
+            case 4:
+                $intermediate = (BitUtils::unsignedRightShift($y, 1) + (int) ($x / 3)) & 0x1;
+                break;
+
+            case 5:
+                $temp = $y * $x;
+                $intermediate = ($temp & 0x1) + ($temp % 3);
+                break;
+
+            case 6:
+                $temp = $y * $x;
+                $intermediate = (($temp & 0x1) + ($temp % 3)) & 0x1;
+                break;
+
+            case 7:
+                $temp = $y * $x;
+                $intermediate = (($temp % 3) + (($y + $x) & 0x1)) & 0x1;
+                break;
+
+            default:
+                throw new InvalidArgumentException('Invalid mask pattern: ' . $maskPattern);
+        }
+
+        return 0 == $intermediate;
     }
 
     /**

@@ -23,26 +23,42 @@ use ImagickPixel;
 
 final class ImagickImageBackEnd implements ImageBackEndInterface
 {
-    private string $imageFormat;
+    /**
+     * @var string
+     */
+    private $imageFormat;
 
-    private int $compressionQuality;
+    /**
+     * @var int
+     */
+    private $compressionQuality;
 
-    private ?Imagick $image;
+    /**
+     * @var Imagick|null
+     */
+    private $image;
 
-    private ?ImagickDraw $draw;
+    /**
+     * @var ImagickDraw|null
+     */
+    private $draw;
 
-    private ?int $gradientCount;
+    /**
+     * @var int|null
+     */
+    private $gradientCount;
 
     /**
      * @var TransformationMatrix[]|null
      */
-    private ?array $matrices;
+    private $matrices;
 
-    private ?int $matrixIndex;
+    /**
+     * @var int|null
+     */
+    private $matrixIndex;
 
-    private bool $antialias;
-
-    public function __construct(string $imageFormat = 'png', int $compressionQuality = 100, bool $antialias = true)
+    public function __construct(string $imageFormat = 'png', int $compressionQuality = 100)
     {
         if (! class_exists(Imagick::class)) {
             throw new RuntimeException('You need to install the imagick extension to use this back end');
@@ -50,7 +66,6 @@ final class ImagickImageBackEnd implements ImageBackEndInterface
 
         $this->imageFormat = $imageFormat;
         $this->compressionQuality = $compressionQuality;
-        $this->antialias = $antialias;
     }
 
     public function new(int $size, ColorInterface $backgroundColor) : void
@@ -60,12 +75,6 @@ final class ImagickImageBackEnd implements ImageBackEndInterface
         $this->image->setImageFormat($this->imageFormat);
         $this->image->setCompressionQuality($this->compressionQuality);
         $this->draw = new ImagickDraw();
-
-        if (! $this->antialias) {
-            $this->image->setAntiAlias(false);
-            $this->draw->setStrokeAntialias(false);
-        }
-
         $this->gradientCount = 0;
         $this->matrices = [new TransformationMatrix()];
         $this->matrixIndex = 0;

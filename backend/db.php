@@ -1,9 +1,9 @@
 <?php
 
 // Database credentials
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');        // default XAMPP user
-define('DB_PASS', '');             // default XAMPP password (blank)
+define('DB_HOST', '127.0.0.1');
+define('DB_USER', 'jonin');
+define('DB_PASS', 'jonin123');
 define('DB_NAME', 'jonin_resort');
 
 // Create connection using MySQLi
