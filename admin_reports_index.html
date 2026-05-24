@@ -30,24 +30,23 @@
       <p>Track bookings, revenue, occupancy, and event activity in one place.</p>
       <div class="hero-actions">
         <button class="btn-primary" onclick="window.location.href='admindashboard_index.html'">Back to Dashboard</button>
-       </div>
+      </div>
     </div>
     <div class="hero-stats">
       <div class="stat-card">
         <span class="stat-label">Monthly Revenue</span>
-        <h2>₱185,400</h2>
-        <p>Net revenue for the last 30 days.</p>
-      </div>
-      
-     <div class="stat-card">
-        <span class="stat-label">Total Bookings</span>
-        <h2>186</h2>
-        <p>Confirmed reservations across all packages.</p>
+        <h2 id="monthly-revenue">—</h2>
+        <p>Net revenue this month.</p>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Average Occupancy</span>
-        <h2>78%</h2>
-        <p>Estimated guest capacity used this month.</p>
+        <span class="stat-label">Total Bookings</span>
+        <h2 id="total-bookings">—</h2>
+        <p>Confirmed reservations this month.</p>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Guests</span>
+        <h2 id="total-guests">—</h2>
+        <p>Guests served this month.</p>
       </div>
     </div>
   </div>
@@ -56,61 +55,62 @@
 <main class="admin-dashboard">
   <div class="dashboard-grid">
     <section class="dashboard-panel">
+
       <div class="panel-header">
         <h2>Revenue by Package</h2>
-        <span class="panel-sub">Last 30 days breakdown</span>
+        <span class="panel-sub">All time breakdown</span>
       </div>
-      <div class="report-summary">
-        <div class="report-card report-card-blue">
-          <h3>Day Passes</h3>
-          <p>₱62,900</p>
-        </div>
-        <div class="report-card report-card-green">
-          <h3>Cottage Rentals</h3>
-          <p>₱78,300</p>
-        </div>
-        <div class="report-card report-card-yellow">
-          <h3>Event Packages</h3>
-          <p>₱44,200</p>
-        </div>
+      <div class="report-summary" id="items-breakdown">
+        <p style="color:#888;padding:12px">Loading...</p>
+      </div>
+
+      <div class="panel-header" style="margin-top:32px">
+        <h2>Booking Status</h2>
+        <span class="panel-sub">All bookings</span>
       </div>
       <div class="table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Metric</th>
-              <th>Value</th>
-              <th>Change</th>
+              <th>Status</th>
+              <th>Count</th>
+              <th>Label</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Week-over-week growth</td>
-              <td>+12%</td>
-              <td><span class="status status-confirmed">Up</span></td>
-            </tr>
-            <tr>
-              <td>Average nightly spend</td>
-              <td>₱1,240</td>
-              <td><span class="status status-booked">Stable</span></td>
-            </tr>
-            <tr>
-              <td>Events scheduled</td>
-              <td>8</td>
-              <td><span class="status status-pending">New</span></td>
-            </tr>
+          <tbody id="status-breakdown">
+            <tr><td colspan="3" style="text-align:center;color:#888">Loading...</td></tr>
           </tbody>
         </table>
       </div>
+
+      <div class="panel-header" style="margin-top:32px">
+        <h2>Recent Bookings</h2>
+        <span class="panel-sub">Latest 5 entries</span>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Ref</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody">
+            <tr><td colspan="5" style="text-align:center;color:#888">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
     </section>
 
     <aside class="dashboard-sidebar">
       <div class="sidebar-card sidebar-card-alt">
-        <h3>Top Performing Dates</h3>
-        <ul class="report-list">
-          <li>May 3 – Sold out</li>
-          <li>May 9 – High traffic</li>
-          <li>May 14 – Event day</li>
+        <h3>Top Booking Dates</h3>
+        <ul class="report-list" id="top-dates">
+          <li style="color:#888">Loading...</li>
         </ul>
       </div>
       <div class="sidebar-card">
@@ -137,5 +137,7 @@
 
 <script src="homepage_script.js"></script>
 <script src="auth.js"></script>
+<script src="admin_reports_script.js"></script>
+
 </body>
 </html>
