@@ -510,55 +510,86 @@ function downloadQRCode() {
 }
 
 // Show my bookings
-function showMyBookings() {
+async function showMyBookings() {
     const user = getCurrentUser();
-    const userEmail = user.email;
-    
-    // Filter bookings by email
-    const myBookings = userBookings.filter(b => b.email === userEmail || b.name === user.name);
-    
-    const bookingsList = document.getElementById('bookings-list');
-    
-    if (myBookings.length === 0) {
-        bookingsList.innerHTML = '<p style="text-align: center; color: #888;">You don\'t have any bookings yet.</p>';
-    } else {
-        bookingsList.innerHTML = myBookings.map(booking => `
-            <div class="booking-item">
-                <div class="booking-info">
-                    <h4>${booking.selectedItems.map(i => i.name).join(', ')}</h4>
-                    <p>📅 ${booking.date} | 👥 ${booking.guests} guests</p>
-                    <p>💰 ₱${booking.totalAmount} | ${booking.paymentMethod}</p>
-                    <p>🆔 Booking ID: ${booking.id}</p>
-                </div>
-                <div>
-                    <span class="booking-status status-${booking.status === 'pending' ? 'pending' : 'confirmed'}">
-                        ${booking.status === 'pending' ? 'Pending' : 'Confirmed'}
-                    </span>
-                    <button class="booking-view-qr" onclick="viewBookingQR('${booking.id}')">View QR</button>
-                </div>
-            </div>
-        `).join('');
+    if (!user || !user.email) {
+        document.getElementById('bookings-list').innerHTML = 
+            '<p style="text-align:center;color:#888">Please log in to view your bookings.</p>';
+        document.getElementById('bookings-modal').classList.add('active');
+        return;
     }
-    
+
+    document.getElementById('bookings-list').innerHTML = 
+        '<p style="text-align:center;color:#888">Loading your bookings...</p>';
     document.getElementById('bookings-modal').classList.add('active');
+
+    try {
+        const res  = await fetch('backend/get_bookings.php');
+        const data = await res.json();
+
+        if (!data.success) throw new Error('Failed to load');
+
+        // Filter by logged-in user email
+        const myBookings = data.bookings.filter(b => b.guest_email === user.email);
+
+        const bookingsList = document.getElementById('bookings-list');
+
+        if (myBookings.length === 0) {
+            bookingsList.innerHTML = 
+                '<p style="text-align:center;color:#888">You don\'t have any bookings yet.</p>';
+            return;
+        }
+
+        bookingsList.innerHTML = myBookings.map(booking => {
+            const items   = booking.selectedItems.map(i => i.item_name).join(', ') || '—';
+            const date    = new Date(booking.booking_date).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+            const status  = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+            const checkin = booking.checkin_status === 'checked_in'  ? '✅ Checked In' :
+                            booking.checkin_status === 'checked_out' ? '🚪 Checked Out' : '⏳ Not yet arrived';
+
+            return `
+                <div class="booking-item">
+                    <div class="booking-info">
+                        <h4>${items}</h4>
+                        <p>📅 ${date} | 👥 ${booking.num_guests} guests</p>
+                        <p>💰 ₱${Number(booking.total_amount).toLocaleString()} | ${booking.payment_method}</p>
+                        <p>🆔 ${booking.booking_ref}</p>
+                        <p>${checkin}</p>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+                        <span class="booking-status status-${booking.status === 'confirmed' ? 'confirmed' : 'pending'}">
+                            ${status}
+                        </span>
+                        <button class="booking-view-qr" onclick="viewBookingQR('${booking.booking_ref}')">View QR</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        document.getElementById('bookings-list').innerHTML = 
+            '<p style="text-align:center;color:#888">Could not load bookings. Try again.</p>';
+        console.error(err);
+    }
 }
 
 // View QR code from saved booking
-async function viewBookingQR(bookingId) {
-    const booking = userBookings.find(b => b.id === bookingId);
-    if (booking) {
-        const qrData = JSON.stringify({
-            bookingId: booking.id,
-            name: booking.name,
-            date: booking.date,
-            guests: booking.guests,
-            items: booking.selectedItems.map(i => i.name),
-            amount: booking.totalAmount
-        });
-        const qrImageData = await generateQRCode(qrData);
-        showConfirmationModal(booking, qrImageData);
-        closeBookingsModal();
-    }
+async function viewBookingQR(bookingRef) {
+    const qrImageData = await generateQRCode(bookingRef);
+
+    // Build a minimal booking object that showConfirmationModal can handle
+    const fakeBooking = {
+        id:            bookingRef,
+        name:          getCurrentUser().name,
+        date:          '',
+        guests:        '',
+        selectedItems: [],
+        totalAmount:   '',
+        paymentMethod: ''
+    };
+
+    showConfirmationModal(fakeBooking, qrImageData);
+    closeBookingsModal();
 }
 
 // Logout function

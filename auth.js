@@ -233,3 +233,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   initOTP();
 });
+
+async function handleAdminLogin() {
+  const email    = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+
+  if (!email || !password) {
+    authToast('Please enter email and password.', 'error');
+    return;
+  }
+
+  try {
+    const res  = await fetch('backend/admin_login.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
+      authToast('Welcome, ' + data.user.name + '!');
+      closeModal();
+      window.location.href = 'admindashboard_index.html';
+    } else {
+      authToast(data.message, 'error');
+    }
+  } catch (err) {
+    authToast('Server error. Try again.', 'error');
+  }
+}

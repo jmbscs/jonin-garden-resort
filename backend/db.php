@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Manila');
 define('DB_HOST', '127.0.0.1');
 define('DB_USER', 'jonin');
 define('DB_PASS', 'jonin123');
@@ -14,4 +15,5 @@ if ($conn->connect_error) {
   ]));
 }
 $conn->set_charset('utf8mb4');
+$conn->query("SET time_zone = '+08:00'");
 ?>

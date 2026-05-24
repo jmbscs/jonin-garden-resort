@@ -99,16 +99,25 @@
 
     <!-- ADMIN PORTAL -->
     <div id="card-admin" class="card">
-      <div class="auth-logo">&#128187;</div>
-      <p class="auth-title">Staff Portal</p>
-      <p class="auth-sub">Authorized personnel only</p>
-      <div class="admin-banner">
-        <span>Admin / Staff Access</span>
-      </div>
-      <div class="auth-field"><label>Staff ID</label><input type="text" placeholder="Enter your staff ID"></div>
-      <div class="auth-field"><label>Password</label><input type="password" placeholder="Enter admin password"></div>
-      <button class="auth-btn auth-btn-red" onclick="window.location.href='admindashboard_index.html'">Access Portal</button>
-      <div class="admin-warning">
+  <div class="auth-logo">🛡️</div>
+  <p class="auth-title">Staff Portal</p>
+  <p class="auth-sub">Admin access only</p>
+  <div class="admin-banner">
+    <span>⚠️ Authorized personnel only</span>
+  </div>
+  <div class="auth-field">
+    <label>Email</label>
+    <input type="email" id="admin-email" placeholder="admin@jonin.com">
+  </div>
+  <div class="auth-field">
+    <label>Password</label>
+    <input type="password" id="admin-password" placeholder="Enter admin password">
+  </div>
+  <button class="auth-btn auth-btn-red" onclick="handleAdminLogin()">Access Portal</button>
+  <div class="admin-warning">
+    <span>🔒 This area is monitored and restricted</span>
+  </div>
+</div>
         &#9888; Full database access — authorized staff only
       </div>
       <p class="back-link" onclick="switchCard('login')">&#8592; Back to guest login</p>

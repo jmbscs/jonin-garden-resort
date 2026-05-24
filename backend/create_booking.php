@@ -6,6 +6,7 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once 'db.php';
+require_once 'mailer.php';
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -80,6 +81,10 @@ try {
   }
 
   $conn->commit();
+
+// Send confirmation email
+$itemNames = array_map(fn($i) => $i['name'], $items);
+sendBookingConfirmationEmail($email, $name, $ref, $date, $itemNames, $total, $guests);
 
   echo json_encode([
     'success'    => true,
