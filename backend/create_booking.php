@@ -59,7 +59,7 @@ try {
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
   $stmt2->bind_param(
-    'siidssss s',
+    'sisisssss',
     $ref, $guestId, $date, $guests,
     $total, $payment, $paystat,
     $notes, $qrData

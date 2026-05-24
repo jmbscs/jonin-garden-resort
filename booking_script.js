@@ -11,7 +11,7 @@ async function loadBookingsFromServer() {
 
     if (result.success) {
       userBookings = result.bookings; // your existing variable
-      renderBookingsList();             // your existing render function
+      // renderBookingsList called after load
     }
   } catch (err) {
     console.error('Could not load bookings:', err);
@@ -100,7 +100,7 @@ function generateQRCode(data) {
             height: 200,
             colorDark: "#2C1A0E",
             colorLight: "#FFFFFF",
-            correctLevel: QRCode.CorrectLevel.H
+            correctLevel: QRCode.CorrectLevel.L
         });
         setTimeout(() => {
             const qrImage = qrContainer.querySelector('img');
@@ -126,7 +126,7 @@ function setActive(el) {
 
 // Search filter
 document.addEventListener('DOMContentLoaded', function() {
-    loadBookings();
+    loadBookingsFromServer();
     updateGuestDisplay();
     
     // Initialize calendar
@@ -345,10 +345,18 @@ async function submitBooking(method) {
     const name = document.getElementById('b-name').value.trim();
     const email = document.getElementById('b-email').value.trim();
     const phone = document.getElementById('b-phone').value.trim();
-    const date = document.getElementById('b-date').value;
+    const datePicker = document.getElementById('b-date');
+    const date = datePicker._flatpickr ? datePicker._flatpickr.selectedDates[0] ? 
+    datePicker._flatpickr.selectedDates[0].toISOString().split('T')[0] : 
+    datePicker.value : datePicker.value;
     const guests = document.getElementById('b-guests').value;
     const specialRequests = document.getElementById('b-notes').value;
     
+
+    if (!date || date.length !== 10) {
+    showToast('Please select a valid date.', 'error');
+    return;
+    }
     if (!name || !email || !date || !guests) {
         showToast('Please fill in your name, email, date of visit, and number of guests.', 'error');
         return;
@@ -395,9 +403,28 @@ async function submitBooking(method) {
         qrData: `${bookingId}|${name}|${date}|${totalAmount}`
     };
     
-    // Save to localStorage
+    
+    // Save to server
+    console.log('Date being sent:', date);
+    const serverResult = await submitBookingToServer({
+        name:            name,
+        email:           email,
+        phone:           phone,
+        date:            date,
+        guests:          parseInt(guests),
+        selectedItems:   selectedItems,
+        totalAmount:     totalAmount,
+        paymentMethod:   method === 'online' ? 'gcash' : 'cash',
+        paymentStatus:   'unpaid',
+        specialRequests: specialRequests
+    });
+
+    if (!serverResult) return; // stop if server failed
+
+    // Use server-generated booking ref
+    booking.id     = serverResult.bookingRef;
+    booking.qrData = serverResult.qrData;
     userBookings.push(booking);
-    saveBookings();
     
     // Update current user info
     const user = getCurrentUser();
@@ -407,14 +434,12 @@ async function submitBooking(method) {
     updateGuestDisplay();
     
     // Generate QR code
-    const qrData = JSON.stringify({
-        bookingId: bookingId,
-        name: name,
-        date: date,
-        guests: guests,
-        items: selectedItems.map(i => i.name),
-        amount: totalAmount
-    });
+    const qrData = serverResult.bookingRef;
+
+    function renderBookingsList() {
+    // bookings loaded - UI update handled by existing display functions
+    console.log('Bookings loaded:', userBookings.length);
+}
     
     const qrImageData = await generateQRCode(qrData);
     
