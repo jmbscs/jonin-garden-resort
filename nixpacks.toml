@@ -1,5 +1,8 @@
 [phases.setup]
-nixPkgs = ["php83", "php83Extensions.mysqli", "php83Extensions.pdo_mysql", "php83Extensions.mbstring", "php83Extensions.curl"]
+nixPkgs = ["php83", "php83Extensions.mysqli", "php83Extensions.pdo_mysql", "php83Extensions.mbstring", "php83Extensions.curl", "php83Packages.composer"]
+
+[phases.install]
+cmds = ["composer install --ignore-platform-reqs"]
 
 [start]
 cmd = "php -S 0.0.0.0:$PORT -t ."
