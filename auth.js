@@ -39,7 +39,7 @@ async function registerUser(name, email, password) {
       authToast(data.message, 'error');
     }
   } catch (err) {
-    authToast('Server error. Make sure XAMPP is running.', 'error');
+    authToast('Server error. Please try again.', 'error');
     console.error(err);
   }
 }
@@ -134,7 +134,7 @@ async function loginUser(email, password) {
       authToast(data.message, 'error');
     }
   } catch (err) {
-    authToast('Server error. Make sure XAMPP is running.', 'error');
+    authToast('Server error. Please try again.', 'error');
     console.error(err);
   }
 }
