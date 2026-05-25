@@ -151,9 +151,18 @@
   <p class="footer-copy">© 2026 Jo-Nin Garden Resort</p>
 </footer>
 
+<script>
+  (function() {
+    const user = JSON.parse(localStorage.getItem('joNinCurrentUser') || 'null');
+    if (!user || user.role !== 'admin') {
+      alert('Access denied. Admins only.');
+      window.location.href = 'homepage_index.html';
+    }
+  })();
+</script>
 <script src="homepage_script.js"></script>
 <script src="auth.js"></script>
-<script src="admindashboard_script.js"></script>  <!-- add this -->
+<script src="admindashboard_script.js"></script>
 <script>
   // Admin guard — redirect if not admin
   (function() {

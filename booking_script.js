@@ -219,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Filter availability by date
 function filterAvailability(date) {
     // For demo, just log. In production, you'd check database
-    console.log("Checking availability for:", date);
 }
 
 // Filter by guest count
@@ -405,7 +404,6 @@ async function submitBooking(method) {
     
     
     // Save to server
-    console.log('Date being sent:', date);
     const serverResult = await submitBookingToServer({
         name:            name,
         email:           email,
@@ -435,13 +433,10 @@ async function submitBooking(method) {
     
     // Generate QR code
     const qrData = serverResult.bookingRef;
+    const qrImageData = await generateQRCode(qrData);
 
     function renderBookingsList() {
-    // bookings loaded - UI update handled by existing display functions
-    console.log('Bookings loaded:', userBookings.length);
 }
-    
-    const qrImageData = await generateQRCode(qrData);
     
     // Show confirmation with QR code
     showConfirmationModal(booking, qrImageData);
