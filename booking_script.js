@@ -1,7 +1,7 @@
 // Store bookings in localStorage
-// userBookings declared in homepage_script.js
-// shared with homepage_script.js
-// shared with homepage_script.js
+// userBookings shared with homepage_script.js
+// currentQRCode shared with homepage_script.js
+// currentBookingData shared with homepage_script.js
 
 // Load saved bookings from localStorage
 async function loadBookingsFromServer() {
