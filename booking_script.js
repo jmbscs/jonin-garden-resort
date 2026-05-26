@@ -1,5 +1,5 @@
 // Store bookings in localStorage
-let userBookings = [];
+// userBookings declared in homepage_script.js
 let currentQRCode = null;
 let currentBookingData = null;
 
