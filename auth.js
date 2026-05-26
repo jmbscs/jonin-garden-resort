@@ -19,19 +19,18 @@ function getCurrentUser() {
 }
 
 async function registerUser(name, email, password) {
+  pendingRegistration = { name, email, password };
   try {
-    const res  = await fetch('backend/register.php', {
+    const res  = await fetch('backend/send_otp.php', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name, email, password })
+      body:    JSON.stringify({ name, email })
     });
     const data = await res.json();
-
     if (data.success) {
-      localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
-      authToast('Account created! Welcome, ' + data.user.name + '!');
-      closeModal();
-      location.reload();
+      authToast('OTP sent to ' + email);
+      switchCard('otp');
+      startResendCooldown();
     } else {
       authToast(data.message, 'error');
     }
@@ -39,6 +38,64 @@ async function registerUser(name, email, password) {
     authToast('Server error. Please try again.', 'error');
     console.error(err);
   }
+}
+
+async function verifyOTP() {
+  if (!pendingRegistration) {
+    authToast('Session expired. Please register again.', 'error');
+    switchCard('register');
+    return;
+  }
+  const boxes = document.querySelectorAll('.otp-box');
+  const otp   = Array.from(boxes).map(b => b.value).join('');
+  if (otp.length < 6) { authToast('Enter the full 6-digit code.', 'error'); return; }
+  try {
+    const res  = await fetch('backend/verify_otp.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        email:    pendingRegistration.email,
+        otp:      otp,
+        name:     pendingRegistration.name,
+        password: pendingRegistration.password
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
+      pendingRegistration = null;
+      authToast('Welcome, ' + data.user.name + '!');
+      closeModal();
+      location.reload();
+    } else {
+      authToast(data.message, 'error');
+    }
+  } catch (err) {
+    authToast('Server error. Try again.', 'error');
+    console.error(err);
+  }
+}
+
+async function resendOTP() {
+  if (!pendingRegistration) return;
+  await registerUser(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
+}
+
+function startResendCooldown() {
+  const btn = document.getElementById('resend-otp-btn');
+  if (!btn) return;
+  let seconds = 60;
+  btn.disabled = true;
+  btn.textContent = 'Resend in ' + seconds + 's';
+  const interval = setInterval(() => {
+    seconds--;
+    btn.textContent = 'Resend in ' + seconds + 's';
+    if (seconds <= 0) {
+      clearInterval(interval);
+      btn.disabled = false;
+      btn.textContent = 'Resend OTP';
+    }
+  }, 1000);
 }
 
 async function loginUser(email, password) {
@@ -49,7 +106,6 @@ async function loginUser(email, password) {
       body:    JSON.stringify({ email, password })
     });
     const data = await res.json();
-
     if (data.success) {
       localStorage.setItem('joNinCurrentUser', JSON.stringify(data.user));
       authToast('Welcome back, ' + data.user.name + '!');
