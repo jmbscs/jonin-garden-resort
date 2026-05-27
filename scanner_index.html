@@ -9,7 +9,10 @@
     body { font-family: sans-serif; background: #0f1b14; color: white; min-height: 100vh; }
     .header { background: #1B6B3A; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
     .header h1 { font-size: 18px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
     .header span { font-size: 12px; opacity: 0.7; }
+    .back-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
+    .back-btn:hover { background: rgba(255,255,255,0.25); }
     .scanner-wrap { display: flex; flex-direction: column; align-items: center; padding: 24px 16px; gap: 20px; }
     #video-container { position: relative; width: 100%; max-width: 400px; border-radius: 12px; overflow: hidden; border: 2px solid #1B6B3A; }
     #qr-video { width: 100%; display: block; }
@@ -33,50 +36,69 @@
     .manual-input { width: 100%; max-width: 400px; display: flex; gap: 8px; }
     .manual-input input { flex: 1; padding: 10px 14px; border-radius: 6px; border: 1px solid #2e8f56; background: #1a2e1f; color: white; font-size: 14px; }
     .manual-input button { padding: 10px 16px; background: #1B6B3A; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .access-denied { text-align: center; padding: 60px 20px; }
+    .access-denied h2 { color: #F5C842; margin-bottom: 12px; }
   </style>
 </head>
 <body>
 <div class="header">
   <h1>🌿 Jo-Nin QR Scanner</h1>
-  <span id="clock"></span>
+  <div class="header-right">
+    <span id="clock"></span>
+    <a href="admindashboard_index.html" class="back-btn">← Dashboard</a>
+  </div>
 </div>
-<div class="scanner-wrap">
-  <div id="video-container">
-    <video id="qr-video" playsinline autoplay muted></video>
-    <div class="scan-line"></div>
-    <div class="corner tl"></div>
-    <div class="corner tr"></div>
-    <div class="corner bl"></div>
-    <div class="corner br"></div>
-  </div>
-  <p id="status-text">Initializing camera...</p>
-  <div id="result-card">
-    <div class="action-badge" id="res-badge"></div>
-    <h2 id="res-name"></h2>
-    <p id="res-ref"></p>
-    <p id="res-time"></p>
-    <div class="duration" id="res-duration"></div>
-    <button onclick="resetScanner()">Scan Next Guest</button>
-  </div>
-  <div class="manual-input">
-    <input type="text" id="manual-ref" placeholder="Or type booking ref manually..." />
-    <button onclick="processManual()">Go</button>
+<div id="access-denied" class="access-denied" style="display:none">
+  <h2>🔒 Access Denied</h2>
+  <p>This page is for authorized staff only.</p>
+  <br>
+  <a href="homepage_index.html" class="back-btn">Go to Homepage</a>
+</div>
+<div id="scanner-content">
+  <div class="scanner-wrap">
+    <div id="video-container">
+      <video id="qr-video" playsinline autoplay muted></video>
+      <div class="scan-line"></div>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+    </div>
+    <p id="status-text">Initializing camera...</p>
+    <div id="result-card">
+      <div class="action-badge" id="res-badge"></div>
+      <h2 id="res-name"></h2>
+      <p id="res-ref"></p>
+      <p id="res-time"></p>
+      <div class="duration" id="res-duration"></div>
+      <button onclick="resetScanner()">Scan Next Guest</button>
+    </div>
+    <div class="manual-input">
+      <input type="text" id="manual-ref" placeholder="Or type booking ref manually..." />
+      <button onclick="processManual()">Go</button>
+    </div>
   </div>
 </div>
 <canvas id="qr-canvas" style="display:none"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <script>
-  const video = document.getElementById('qr-video');
-  const canvas = document.getElementById('qr-canvas');
-  const ctx = canvas.getContext('2d');
+  (function() {
+    const user = JSON.parse(localStorage.getItem('joNinCurrentUser') || 'null');
+    if (!user || user.role !== 'admin') {
+      document.getElementById('scanner-content').style.display = 'none';
+      document.getElementById('access-denied').style.display = 'block';
+      return;
+    }
+  })();
+  const video    = document.getElementById('qr-video');
+  const canvas   = document.getElementById('qr-canvas');
+  const ctx      = canvas.getContext('2d');
   const statusEl = document.getElementById('status-text');
-  let scanning = true;
+  let scanning   = true;
   let lastScanned = '';
-
   setInterval(() => {
-    document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-PH');
   }, 1000);
-
   navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
     .then(stream => {
       video.srcObject = stream;
@@ -87,31 +109,29 @@
     .catch(() => {
       statusEl.textContent = 'Camera unavailable — use manual input below';
     });
-
   function scanFrame() {
     if (!scanning) return;
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      canvas.width = video.videoWidth;
+      canvas.width  = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      const code      = jsQR(imageData.data, imageData.width, imageData.height);
       if (code && code.data && code.data !== lastScanned) {
-        lastScanned = code.data;
-        scanning = false;
+        lastScanned          = code.data;
+        scanning             = false;
         statusEl.textContent = 'QR detected! Processing...';
         processScan(code.data);
       }
     }
     requestAnimationFrame(scanFrame);
   }
-
   async function processScan(ref) {
     try {
-      const res = await fetch('backend/scan_qr.php', {
-        method: 'POST',
+      const res  = await fetch('backend/scan_qr.php', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, scannedBy: 'staff' })
+        body:    JSON.stringify({ ref, scannedBy: 'staff' })
       });
       const data = await res.json();
       showResult(data);
@@ -119,46 +139,46 @@
       showResult({ success: false, message: 'Server error. Check connection.' });
     }
   }
-
   function processManual() {
     const ref = document.getElementById('manual-ref').value.trim();
     if (!ref) return;
     scanning = false;
     processScan(ref);
   }
-
   function showResult(data) {
     const card = document.getElementById('result-card');
-    card.className = '';
+    card.className     = '';
     card.style.display = 'block';
     if (data.success) {
       card.classList.add(data.action === 'time_in' ? 'time-in' : 'time-out');
-      document.getElementById('res-badge').textContent = data.action === 'time_in' ? '✅ Checked In' : '🚪 Checked Out';
-      document.getElementById('res-name').textContent = data.guest;
-      document.getElementById('res-ref').textContent = data.ref;
-      document.getElementById('res-time').textContent = data.action === 'time_in'
-        ? 'Time In: ' + new Date(data.time).toLocaleTimeString()
-        : 'In: ' + new Date(data.time_in).toLocaleTimeString() + ' → Out: ' + new Date(data.time_out).toLocaleTimeString();
+      document.getElementById('res-badge').textContent    = data.action === 'time_in' ? '✅ Checked In' : '🚪 Checked Out';
+      document.getElementById('res-name').textContent     = data.guest;
+      document.getElementById('res-ref').textContent      = data.ref;
+      document.getElementById('res-time').textContent     = data.action === 'time_in'
+        ? 'Time In: ' + new Date(data.time).toLocaleTimeString('en-PH')
+        : 'In: ' + new Date(data.time_in).toLocaleTimeString('en-PH') + ' → Out: ' + new Date(data.time_out).toLocaleTimeString('en-PH');
       document.getElementById('res-duration').textContent = data.duration ? '⏱ ' + data.duration : '';
     } else {
       card.classList.add('error');
-      document.getElementById('res-badge').textContent = '❌ Error';
-      document.getElementById('res-name').textContent = data.message;
-      document.getElementById('res-ref').textContent = '';
-      document.getElementById('res-time').textContent = '';
+      document.getElementById('res-badge').textContent    = '❌ Error';
+      document.getElementById('res-name').textContent     = data.message;
+      document.getElementById('res-ref').textContent      = '';
+      document.getElementById('res-time').textContent     = '';
       document.getElementById('res-duration').textContent = '';
     }
     statusEl.textContent = '';
   }
-
   function resetScanner() {
     document.getElementById('result-card').style.display = 'none';
-    document.getElementById('manual-ref').value = '';
-    lastScanned = '';
-    scanning = true;
+    document.getElementById('manual-ref').value          = '';
+    lastScanned          = '';
+    scanning             = true;
     statusEl.textContent = 'Point camera at guest QR code';
     requestAnimationFrame(scanFrame);
   }
+  document.getElementById('manual-ref').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') processManual();
+  });
 </script>
 </body>
 </html>
