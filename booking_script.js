@@ -18,10 +18,6 @@ async function loadBookingsFromServer() {
   }
 }
 
-// Call it on page load instead of loadBookings()
-document.addEventListener('DOMContentLoaded', () => {
-  loadBookingsFromServer();
-});
 
 // Save bookings to localStorage
 async function submitBookingToServer(bookingData) {
