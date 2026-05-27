@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="admin_style.css">
 </head>
 <body>
-
 <nav>
   <div class="nav-logo">Jo-Nin</div>
   <ul class="nav-links">
@@ -21,7 +20,6 @@
   </ul>
   <button class="nav-cta" onclick="logout()">Logout</button>
 </nav>
-
 <section class="admin-hero">
   <div class="admin-hero-inner">
     <div class="hero-copy">
@@ -29,29 +27,17 @@
       <h1>Admin Dashboard</h1>
       <p>Manage bookings, review resort activity, and keep Jo-Nin running smoothly.</p>
       <div class="hero-actions">
+        <button class="btn-primary" onclick="window.location.href='scanner_index.html'">📷 Open QR Scanner</button>
         <button class="btn-secondary" onclick="viewReports()">View Reports</button>
       </div>
     </div>
     <div class="hero-stats">
-      <div class="stat-card">
-        <span class="stat-label">Today</span>
-        <h2 id="total-guests">—</h2>
-        <p>guests currently checked in</p>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Bookings</span>
-        <h2 id="total-bookings">—</h2>
-        <p>new reservations this week</p>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Revenue</span>
-        <h2 id="total-revenue">—</h2>
-        <p>earned in the last 7 days</p>
-      </div>
+      <div class="stat-card"><span class="stat-label">Today</span><h2 id="total-guests">—</h2><p>guests currently checked in</p></div>
+      <div class="stat-card"><span class="stat-label">Bookings</span><h2 id="total-bookings">—</h2><p>new reservations this week</p></div>
+      <div class="stat-card"><span class="stat-label">Revenue</span><h2 id="total-revenue">—</h2><p>earned in the last 7 days</p></div>
     </div>
   </div>
 </section>
-
 <main class="admin-dashboard">
   <div class="dashboard-grid">
     <section class="dashboard-panel">
@@ -62,95 +48,49 @@
       <div class="table-wrap">
         <table class="admin-table">
           <thead>
-            <tr>
-              <th>Guest</th>
-              <th>Package</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
+            <tr><th>Guest</th><th>Package</th><th>Date</th><th>Check-in</th><th>Status</th><th>Action</th></tr>
           </thead>
           <tbody id="bookings-tbody">
-            <tr data-booking-id="BKG-001" data-guest="Maria Santos" data-package="Family Cottage" data-date="May 15" data-status="Confirmed">
-              <td>Maria Santos</td>
-              <td>Family Cottage</td>
-              <td>May 15</td>
-              <td><span class="status status-confirmed">Confirmed</span></td>
-              <td><button class="table-btn">Details</button></td>
-            </tr>
-            <tr data-booking-id="BKG-002" data-guest="John dela Cruz" data-package="Night Pass" data-date="May 14" data-status="Pending">
-              <td>John dela Cruz</td>
-              <td>Night Pass</td>
-              <td>May 14</td>
-              <td><span class="status status-pending">Pending</span></td>
-              <td><button class="table-btn">Confirm</button></td>
-            </tr>
-            <tr data-booking-id="BKG-003" data-guest="Angela Reyes" data-package="Event Package" data-date="May 20" data-status="Booked">
-              <td>Angela Reyes</td>
-              <td>Event Package</td>
-              <td>May 20</td>
-              <td><span class="status status-booked">Booked</span></td>
-              <td><button class="table-btn">Manage</button></td>
-            </tr>
-            <tr data-booking-id="BKG-004" data-guest="Gabriel Tan" data-package="Day Pass" data-date="May 16" data-status="Confirmed">
-              <td>Gabriel Tan</td>
-              <td>Day Pass</td>
-              <td>May 16</td>
-              <td><span class="status status-confirmed">Confirmed</span></td>
-              <td><button class="table-btn">Details</button></td>
-            </tr>
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:#888">Loading bookings...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
-
     <aside class="dashboard-sidebar">
       <div class="sidebar-card">
-        <h3>Team Quick Actions</h3>
+        <h3>Quick Actions</h3>
         <ul>
-          <li><button class="sidebar-btn">Add New Staff</button></li>
-          <li><button class="sidebar-btn">Update Rates</button></li>
-          <li><button class="sidebar-btn">Schedule Maintenance</button></li>
+          <li><button class="sidebar-btn" onclick="window.location.href='scanner_index.html'">📷 QR Scanner</button></li>
+          <li><button class="sidebar-btn" onclick="viewReports()">📊 View Reports</button></li>
+          <li><button class="sidebar-btn" onclick="loadRecentBookings()">🔄 Refresh Bookings</button></li>
         </ul>
       </div>
       <div class="sidebar-card sidebar-card-alt">
-        <h3>Operational Notes</h3>
-        <p>Remember to confirm the sound system for the weekend event and check the main pool lights before 5 PM.</p>
-      </div>
-      <div class="sidebar-card">
         <h3>Resort Status</h3>
         <div class="status-grid">
-          <div>
-            <span class="status-dot active"></span>
-            <p>Pool areas ready</p>
-          </div>
-          <div>
-            <span class="status-dot warning"></span>
-            <p>Food stall restock</p>
-          </div>
-          <div>
-            <span class="status-dot offline"></span>
-            <p>Event lights check</p>
-          </div>
+          <div><span class="status-dot active"></span><p>Pool areas ready</p></div>
+          <div><span class="status-dot warning"></span><p>Food stall restock</p></div>
+          <div><span class="status-dot offline"></span><p>Event lights check</p></div>
         </div>
+      </div>
+      <div class="sidebar-card">
+        <h3>Today's Attendance</h3>
+        <p id="attendance-summary" style="font-size:14px;color:#888;margin-top:8px">Loading...</p>
       </div>
     </aside>
   </div>
 </main>
-
 <div id="admin-modal" class="admin-modal-overlay">
   <div class="admin-modal-box">
     <button class="admin-modal-close" onclick="closeAdminModal()">&times;</button>
     <div id="admin-modal-content"></div>
   </div>
 </div>
-
 <footer>
   <div class="footer-logo">Jo-Nin Garden Resort</div>
   <p class="footer-tagline">Admin dashboard for resort operations.</p>
   <p class="footer-copy">© 2026 Jo-Nin Garden Resort</p>
 </footer>
-
 <script>
   (function() {
     const user = JSON.parse(localStorage.getItem('joNinCurrentUser') || 'null');
@@ -160,18 +100,7 @@
     }
   })();
 </script>
-<script src="homepage_script.js"></script>
 <script src="auth.js"></script>
 <script src="admindashboard_script.js"></script>
-<script>
-  // Admin guard — redirect if not admin
-  (function() {
-    const user = JSON.parse(localStorage.getItem('joNinCurrentUser') || 'null');
-    if (!user || user.role !== 'admin') {
-      alert('Access denied. Admins only.');
-      window.location.href = 'homepage_index.html';
-    }
-  })();
-</script>
 </body>
 </html>
