@@ -278,3 +278,143 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 });
+/* ── LIVE CHAT ── */
+let chatSession = null;
+let chatPollInterval = null;
+let lastMessageId = 0;
+
+function requestLiveChat() {
+  const user = JSON.parse(localStorage.getItem('joNinCurrentUser') || 'null');
+  const name  = user?.name  || 'Guest';
+  const email = user?.email || '';
+
+  if (!email) {
+    appendBotMessage('Please log in first so we can connect you to our staff! 😊');
+    return;
+  }
+
+  appendBotMessage('Connecting you to our staff... Please wait a moment! 🙏');
+
+  fetch('backend/chat_request.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ name, email })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      chatSession = { id: data.session_id, token: data.token };
+      showLiveChatUI(name);
+    } else {
+      appendBotMessage('Sorry, could not start a chat session. Please try again.');
+    }
+  })
+  .catch(() => appendBotMessage('Connection error. Please try again.'));
+}
+
+function showLiveChatUI(name) {
+  const body = document.getElementById('chatbot-body');
+  if (!body) return;
+
+  body.innerHTML = `
+    <div id="live-chat-header" style="background:#1B6B3A;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px">
+      <strong>Live Support</strong> &nbsp;•&nbsp; <span id="chat-status-badge" style="color:#F5C842">⏳ Waiting for admin...</span>
+    </div>
+    <div id="live-chat-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0;min-height:180px;max-height:240px"></div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <input id="live-chat-input" type="text" placeholder="Type a message..." style="flex:1;padding:8px 12px;border-radius:20px;border:1px solid #ccc;font-size:13px;outline:none" />
+      <button onclick="sendLiveChatMessage()" style="background:#1B6B3A;color:white;border:none;border-radius:20px;padding:8px 14px;cursor:pointer;font-size:13px">Send</button>
+    </div>
+    <button onclick="closeLiveChat()" style="margin-top:8px;width:100%;background:transparent;border:1px solid #ccc;border-radius:20px;padding:6px;font-size:12px;color:#888;cursor:pointer">End Chat</button>
+  `;
+
+  document.getElementById('live-chat-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendLiveChatMessage();
+  });
+
+  appendLiveChatMessage('system', 'You are now connected. A staff member will be with you shortly!');
+  startChatPolling();
+}
+
+function appendLiveChatMessage(sender, text) {
+  const container = document.getElementById('live-chat-messages');
+  if (!container) return;
+
+  const div = document.createElement('div');
+  div.style.cssText = `max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.4;word-break:break-word;` +
+    (sender === 'guest'  ? 'align-self:flex-end;background:#1B6B3A;color:white;border-bottom-right-radius:3px' :
+     sender === 'admin'  ? 'align-self:flex-start;background:#f0f0f0;color:#333;border-bottom-left-radius:3px' :
+                           'align-self:center;color:#888;font-style:italic;font-size:12px');
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendLiveChatMessage() {
+  if (!chatSession) return;
+  const input = document.getElementById('live-chat-input');
+  const msg   = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+
+  appendLiveChatMessage('guest', msg);
+
+  fetch('backend/chat_send.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ session_id: chatSession.id, token: chatSession.token, sender: 'guest', message: msg })
+  });
+}
+
+function startChatPolling() {
+  chatPollInterval = setInterval(() => {
+    if (!chatSession) return;
+    fetch(`backend/chat_poll.php?session_id=${chatSession.id}&token=${chatSession.token}&after=${lastMessageId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success) return;
+
+        const badge = document.getElementById('chat-status-badge');
+        if (badge) {
+          badge.textContent = data.status === 'active' ? '🟢 Admin is online' :
+                              data.status === 'closed' ? '🔴 Chat ended' : '⏳ Waiting for admin...';
+        }
+
+        data.messages.forEach(m => {
+          if (m.sender === 'admin') appendLiveChatMessage('admin', m.message);
+          if (parseInt(m.id) > lastMessageId) lastMessageId = parseInt(m.id);
+        });
+
+        if (data.status === 'closed') {
+          clearInterval(chatPollInterval);
+          appendLiveChatMessage('system', 'Chat session ended by admin.');
+        }
+      });
+  }, 3000);
+}
+
+function closeLiveChat() {
+  if (!chatSession) return;
+  clearInterval(chatPollInterval);
+  fetch('backend/chat_close.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ session_id: chatSession.id })
+  });
+  chatSession = null;
+  lastMessageId = 0;
+
+  const body = document.getElementById('chatbot-body');
+  if (body) body.innerHTML = '';
+  appendBotMessage('Chat ended. Feel free to ask me anything else! 😊');
+}
+
+function appendBotMessage(text) {
+  const body = document.getElementById('chatbot-body');
+  if (!body) return;
+  const div = document.createElement('div');
+  div.className = 'bot-msg';
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
