@@ -1,24 +1,26 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit(); }
 require_once 'db.php';
 
-$data = json_decode(file_get_contents('php://input'), true);
+$data      = json_decode(file_get_contents('php://input'), true);
+$bookingId = (int)($data['bookingId'] ?? 0);
 
-$bookingId     = (int)($data['bookingId'] ?? 0);
+if ($bookingId <= 0) {
+  die(json_encode(['success' => false, 'message' => 'Invalid booking ID']));
+}
+
 $newStatus     = $data['status']        ?? null;
 $paymentStatus = $data['paymentStatus'] ?? null;
 
-// Build update query dynamically based on what was sent
 $fields = [];
 $types  = '';
 $params = [];
 
 if ($newStatus) {
-  $allowed = ['pending', 'confirmed', 'cancelled'];
-  if (!in_array($newStatus, $allowed)) {
+  if (!in_array($newStatus, ['pending','confirmed','cancelled'])) {
     die(json_encode(['success' => false, 'message' => 'Invalid status']));
   }
   $fields[] = 'status = ?';
@@ -27,8 +29,7 @@ if ($newStatus) {
 }
 
 if ($paymentStatus) {
-  $allowed2 = ['unpaid', 'partial', 'paid'];
-  if (!in_array($paymentStatus, $allowed2)) {
+  if (!in_array($paymentStatus, ['unpaid','partial','paid'])) {
     die(json_encode(['success' => false, 'message' => 'Invalid payment status']));
   }
   $fields[] = 'payment_status = ?';
@@ -42,16 +43,11 @@ if (empty($fields)) {
 
 $types   .= 'i';
 $params[] = &$bookingId;
-
-$sql  = "UPDATE bookings SET " . implode(', ', $fields) . " WHERE id = ?";
-$stmt = $conn->prepare($sql);
+$sql      = "UPDATE bookings SET " . implode(', ', $fields) . " WHERE id = ?";
+$stmt     = $conn->prepare($sql);
 array_unshift($params, $types);
 call_user_func_array([$stmt, 'bind_param'], $params);
 $stmt->execute();
 
-echo json_encode([
-  'success' => true,
-  'message' => 'Booking updated.',
-  'affected' => $stmt->affected_rows
-]);
+echo json_encode(['success' => true, 'message' => 'Booking updated.', 'affected' => $stmt->affected_rows]);
 ?>
