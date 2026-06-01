@@ -132,11 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAdminStats();
   loadRecentBookings();
   loadAttendanceSummary();
+  loadChatSessions();
   setInterval(() => {
     loadAdminStats();
     loadRecentBookings();
     loadAttendanceSummary();
-  }, 30000);
+    loadChatSessions();
+  }, 5000);
 });
 
 /* ── LIVE CHAT PANEL ── */
