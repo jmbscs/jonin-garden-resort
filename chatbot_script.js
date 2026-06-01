@@ -313,10 +313,13 @@ function requestLiveChat() {
 }
 
 function showLiveChatUI(name) {
-  const body = document.getElementById('chatbot-body');
-  if (!body) return;
+  const container = document.getElementById('chat-messages');
+  if (!container) return;
+  // Hide quick replies
+  const qr = document.getElementById('quick-replies');
+  if (qr) qr.style.display = 'none';
 
-  body.innerHTML = `
+  container.innerHTML = `
     <div id="live-chat-header" style="background:#1B6B3A;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px">
       <strong>Live Support</strong> &nbsp;•&nbsp; <span id="chat-status-badge" style="color:#F5C842">⏳ Waiting for admin...</span>
     </div>
@@ -404,17 +407,13 @@ function closeLiveChat() {
   chatSession = null;
   lastMessageId = 0;
 
-  const body = document.getElementById('chatbot-body');
-  if (body) body.innerHTML = '';
-  appendBotMessage('Chat ended. Feel free to ask me anything else! 😊');
+  const container = document.getElementById('chat-messages');
+  if (container) container.innerHTML = '';
+  const qr = document.getElementById('quick-replies');
+  if (qr) qr.style.display = '';
+  addBubble('Chat ended. Feel free to ask me anything else! 😊', 'bot');
 }
 
 function appendBotMessage(text) {
-  const body = document.getElementById('chatbot-body');
-  if (!body) return;
-  const div = document.createElement('div');
-  div.className = 'bot-msg';
-  div.textContent = text;
-  body.appendChild(div);
-  body.scrollTop = body.scrollHeight;
+  addBubble(text, 'bot');
 }
