@@ -138,3 +138,132 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAttendanceSummary();
   }, 30000);
 });
+
+/* ── LIVE CHAT PANEL ── */
+let activeChatSession = null;
+let adminChatPollInterval = null;
+let adminLastMessageId = 0;
+
+async function loadChatSessions() {
+  try {
+    const res  = await fetch('backend/chat_sessions.php');
+    const data = await res.json();
+    if (!data.success) return;
+
+    const pending = data.sessions.filter(s => s.status === 'pending' || s.status === 'active');
+
+    // Update notification badge
+    const badge = document.getElementById('chat-notif-badge');
+    if (badge) {
+      badge.textContent = pending.length;
+      badge.style.display = pending.length > 0 ? 'inline-block' : 'none';
+    }
+
+    // Render session list
+    const list = document.getElementById('chat-sessions-list');
+    if (!list) return;
+
+    if (pending.length === 0) {
+      list.innerHTML = '<p style="color:#888;font-size:13px;text-align:center;padding:16px">No active chat requests</p>';
+      return;
+    }
+
+    list.innerHTML = pending.map(s => `
+      <div onclick="openAdminChat(${s.id}, '${s.guest_name}', '${s.guest_email}')"
+           style="padding:12px;border-radius:8px;cursor:pointer;border:1px solid #eee;margin-bottom:8px;background:${s.status==='pending'?'#fff8f0':'#f0fff4'}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="font-size:14px">${s.guest_name}</strong>
+          <span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${s.status==='pending'?'#BE2130':'#1B6B3A'};color:white">
+            ${s.status === 'pending' ? '⏳ Waiting' : '🟢 Active'}
+          </span>
+        </div>
+        <p style="font-size:12px;color:#888;margin-top:4px">${s.guest_email}</p>
+        <p style="font-size:12px;color:#555;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${s.last_message || 'No messages yet'}
+        </p>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('Could not load chat sessions:', err);
+  }
+}
+
+function openAdminChat(sessionId, guestName, guestEmail) {
+  activeChatSession = sessionId;
+  adminLastMessageId = 0;
+
+  const panel = document.getElementById('admin-chat-panel');
+  if (panel) panel.style.display = 'flex';
+
+  document.getElementById('admin-chat-guest-name').textContent  = guestName;
+  document.getElementById('admin-chat-guest-email').textContent = guestEmail;
+  document.getElementById('admin-chat-messages').innerHTML = '';
+
+  if (adminChatPollInterval) clearInterval(adminChatPollInterval);
+  adminChatPollInterval = setInterval(pollAdminChat, 2000);
+  pollAdminChat();
+}
+
+async function pollAdminChat() {
+  if (!activeChatSession) return;
+  try {
+    const res  = await fetch(`backend/chat_poll.php?session_id=${activeChatSession}&after=${adminLastMessageId}`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    data.messages.forEach(m => {
+      appendAdminChatMessage(m.sender, m.message);
+      if (parseInt(m.id) > adminLastMessageId) adminLastMessageId = parseInt(m.id);
+    });
+
+    if (data.status === 'closed') {
+      clearInterval(adminChatPollInterval);
+      appendAdminChatMessage('system', 'Chat session was closed.');
+    }
+  } catch (err) {
+    console.error('Poll error:', err);
+  }
+}
+
+function appendAdminChatMessage(sender, text) {
+  const container = document.getElementById('admin-chat-messages');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.style.cssText = `max-width:80%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.4;word-break:break-word;margin-bottom:6px;` +
+    (sender === 'admin'  ? 'align-self:flex-end;background:#1B6B3A;color:white;border-bottom-right-radius:3px' :
+     sender === 'guest'  ? 'align-self:flex-start;background:#f0f0f0;color:#333;border-bottom-left-radius:3px' :
+                           'align-self:center;color:#888;font-style:italic;font-size:12px');
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendAdminMessage() {
+  const input = document.getElementById('admin-chat-input');
+  const msg   = input.value.trim();
+  if (!msg || !activeChatSession) return;
+  input.value = '';
+
+  appendAdminChatMessage('admin', msg);
+
+  await fetch('backend/chat_send.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ session_id: activeChatSession, token: '', sender: 'admin', message: msg })
+  });
+}
+
+async function closeAdminChat() {
+  if (!activeChatSession) return;
+  await fetch('backend/chat_close.php', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ session_id: activeChatSession })
+  });
+  clearInterval(adminChatPollInterval);
+  activeChatSession = null;
+  adminLastMessageId = 0;
+  const panel = document.getElementById('admin-chat-panel');
+  if (panel) panel.style.display = 'none';
+  loadChatSessions();
+}
