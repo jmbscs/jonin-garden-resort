@@ -587,7 +587,7 @@ async function viewBookingQR(bookingRef) {
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('joNinCurrentUser');
-        window.location.href = 'hompage_index.html';
+        window.location.href = 'homepage_index.html';
     }
 }
 
