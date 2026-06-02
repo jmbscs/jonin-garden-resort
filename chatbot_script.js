@@ -320,8 +320,9 @@ function showLiveChatUI(name) {
   if (qr) qr.style.display = 'none';
 
   container.innerHTML = `
-    <div id="live-chat-header" style="background:#1B6B3A;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px">
-      <strong>Live Support</strong> &nbsp;•&nbsp; <span id="chat-status-badge" style="color:#F5C842">⏳ Waiting for admin...</span>
+    <div id="live-chat-header" style="background:#1B6B3A;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Live Support</strong> &nbsp;•&nbsp; <span id="chat-status-badge" style="color:#F5C842">⏳ Waiting for admin...</span></div>
+      <button onclick="closeLiveChat()" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px">✕</button>
     </div>
     <div id="live-chat-messages" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0;min-height:180px;max-height:240px"></div>
     <div style="display:flex;gap:6px;margin-top:8px">

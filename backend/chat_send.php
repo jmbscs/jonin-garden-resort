@@ -13,7 +13,6 @@ if (!$sessionId || !$message || !in_array($sender, ['guest', 'admin'])) {
   die(json_encode(['success' => false, 'message' => 'Invalid request.']));
 }
 
-// Verify session exists and token matches for guests
 if ($sender === 'guest') {
   $check = $conn->prepare("SELECT id FROM chat_sessions WHERE id = ? AND session_token = ?");
   $check->bind_param('is', $sessionId, $token);
@@ -22,8 +21,9 @@ if ($sender === 'guest') {
   if ($check->num_rows === 0) {
     die(json_encode(['success' => false, 'message' => 'Invalid session.']));
   }
-  // Update session to active if pending
-  $conn->prepare("UPDATE chat_sessions SET status = 'active' WHERE id = ? AND status = 'pending'")->execute();
+  $upd = $conn->prepare("UPDATE chat_sessions SET status = 'active' WHERE id = ? AND status = 'pending'");
+  $upd->bind_param('i', $sessionId);
+  $upd->execute();
 }
 
 $message = substr($message, 0, 1000);
