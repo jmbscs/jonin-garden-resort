@@ -261,8 +261,6 @@ async function sendAdminMessage() {
   if (!msg || !activeChatSession) return;
   input.value = '';
 
-  appendAdminChatMessage('admin', msg);
-
   await fetch('backend/chat_send.php', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
