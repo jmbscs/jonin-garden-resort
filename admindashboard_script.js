@@ -191,19 +191,34 @@ async function loadChatSessions() {
 }
 
 function openAdminChat(sessionId, guestName, guestEmail) {
-  activeChatSession = sessionId;
+  activeChatSession  = sessionId;
   adminLastMessageId = 0;
 
   const panel = document.getElementById('admin-chat-panel');
   if (panel) panel.style.display = 'flex';
 
-  document.getElementById('admin-chat-guest-name').textContent  = guestName;
-  document.getElementById('admin-chat-guest-email').textContent = guestEmail;
-  document.getElementById('admin-chat-messages').innerHTML = '';
+  const nameEl  = document.getElementById('admin-chat-guest-name');
+  const emailEl = document.getElementById('admin-chat-guest-email');
+  const msgEl   = document.getElementById('admin-chat-messages');
+
+  if (nameEl)  nameEl.textContent  = guestName;
+  if (emailEl) emailEl.textContent = guestEmail;
+  if (msgEl)   msgEl.innerHTML     = '';
 
   if (adminChatPollInterval) clearInterval(adminChatPollInterval);
+
+  // Load all existing messages immediately then start polling
+  fetch(`backend/chat_poll.php?session_id=${sessionId}&after=0`)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return;
+      data.messages.forEach(m => {
+        appendAdminChatMessage(m.sender, m.message);
+        if (parseInt(m.id) > adminLastMessageId) adminLastMessageId = parseInt(m.id);
+      });
+    });
+
   adminChatPollInterval = setInterval(pollAdminChat, 2000);
-  pollAdminChat();
 }
 
 async function pollAdminChat() {

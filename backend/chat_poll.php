@@ -4,13 +4,11 @@ require_once 'db.php';
 
 $sessionId = (int)($_GET['session_id'] ?? 0);
 $after     = (int)($_GET['after']      ?? 0);
-$token     = trim($_GET['token']       ?? '');
 
 if (!$sessionId) {
   die(json_encode(['success' => false, 'message' => 'Invalid session.']));
 }
 
-// Get session status
 $sess = $conn->prepare("SELECT status, guest_name FROM chat_sessions WHERE id = ?");
 $sess->bind_param('i', $sessionId);
 $sess->execute();
@@ -20,7 +18,6 @@ if (!$session) {
   die(json_encode(['success' => false, 'message' => 'Session not found.']));
 }
 
-// Get new messages since last poll
 $stmt = $conn->prepare("SELECT id, sender, message, created_at FROM chat_messages WHERE session_id = ? AND id > ? ORDER BY id ASC");
 $stmt->bind_param('ii', $sessionId, $after);
 $stmt->execute();
@@ -29,6 +26,7 @@ $messages = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 echo json_encode([
   'success'  => true,
   'status'   => $session['status'],
+  'guest'    => $session['guest_name'],
   'messages' => $messages
 ]);
 ?>
