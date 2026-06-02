@@ -361,6 +361,9 @@ function sendLiveChatMessage() {
   if (!msg) return;
   input.value = '';
 
+  // Show immediately for sender, poll handles admin replies
+  appendLiveChatMessage('guest', msg);
+
   fetch('backend/chat_send.php', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -383,6 +386,7 @@ function startChatPolling() {
         }
 
         data.messages.forEach(m => {
+          // Only show admin messages via poll; guest messages shown immediately on send
           if (m.sender === 'admin') appendLiveChatMessage('admin', m.message);
           if (parseInt(m.id) > lastMessageId) lastMessageId = parseInt(m.id);
         });
