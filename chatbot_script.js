@@ -361,8 +361,6 @@ function sendLiveChatMessage() {
   if (!msg) return;
   input.value = '';
 
-  appendLiveChatMessage('guest', msg);
-
   fetch('backend/chat_send.php', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
