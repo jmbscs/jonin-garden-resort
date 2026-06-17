@@ -1,11 +1,11 @@
 <?php
 date_default_timezone_set('Asia/Manila');
 
-define('DB_HOST', getenv('MYSQLHOST')     ?: '127.0.0.1');
-define('DB_USER', getenv('MYSQLUSER')     ?: 'jonin');
-define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'jonin123');
-define('DB_NAME', getenv('MYSQLDATABASE') ?: 'jonin_resort');
-define('DB_PORT', getenv('MYSQLPORT')     ?: '3306');
+define('DB_HOST', getenv('MYSQLHOST')     ?: 'mysql-2e8062c5-jonin-garden-resort.e.aivencloud.com');
+define('DB_USER', getenv('MYSQLUSER')     ?: 'avnadmin');
+define('DB_PASS', getenv('MYSQLPASSWORD') ?: 'AVNS_T41ZinKjsLv0pIyUgzM');
+define('DB_NAME', getenv('MYSQLDATABASE') ?: 'defaultdb');
+define('DB_PORT', getenv('MYSQLPORT')     ?: '19337');
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, (int)DB_PORT);
 
