@@ -1,13 +1,11 @@
 <?php
-
 function sendOTPEmail($toEmail, $toName, $otp) {
-  $apiKey = getenv('RESEND_API_KEY');
-
+  $apiKey = getenv('BREVO_API_KEY');
   $payload = json_encode([
-    'from'    => 'Jo-Nin Garden Resort <onboarding@resend.dev>',
-    'to'      => [$toEmail],
-    'subject' => 'Your Jo-Nin Verification Code',
-    'html'    => "
+    'sender'     => ['name' => 'Jo-Nin Garden Resort', 'email' => 'jonin@gmail.com'],
+    'to'         => [['email' => $toEmail, 'name' => $toName]],
+    'subject'    => 'Your Jo-Nin Verification Code',
+    'htmlContent' => "
       <div style='font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #eee;border-radius:8px'>
         <h2 style='color:#1B6B3A'>Jo-Nin Garden Resort</h2>
         <p>Hi <strong>$toName</strong>,</p>
@@ -17,32 +15,28 @@ function sendOTPEmail($toEmail, $toName, $otp) {
       </div>
     "
   ]);
-
-  $ch = curl_init('https://api.resend.com/emails');
+  $ch = curl_init('https://api.brevo.com/v3/smtp/email');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, true);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
   curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $apiKey,
+    'api-key: ' . $apiKey,
     'Content-Type: application/json'
   ]);
-
   $response = curl_exec($ch);
   $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
   curl_close($ch);
-
-  return $httpCode === 200;
+  return $httpCode === 201;
 }
 
 function sendBookingConfirmationEmail($toEmail, $toName, $ref, $date, $items, $total, $guests) {
-  $apiKey    = getenv('RESEND_API_KEY');
+  $apiKey    = getenv('BREVO_API_KEY');
   $itemsList = implode(', ', $items);
-
   $payload = json_encode([
-    'from'    => 'Jo-Nin Garden Resort <onboarding@resend.dev>',
-    'to'      => [$toEmail],
-    'subject' => 'Booking Confirmed — ' . $ref,
-    'html'    => "
+    'sender'      => ['name' => 'Jo-Nin Garden Resort', 'email' => 'jonin@gmail.com'],
+    'to'          => [['email' => $toEmail, 'name' => $toName]],
+    'subject'     => 'Booking Confirmed — ' . $ref,
+    'htmlContent' => "
       <div style='font-family:sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #eee;border-radius:8px'>
         <h2 style='color:#1B6B3A'>Booking Confirmed!</h2>
         <p>Hi <strong>$toName</strong>, your booking is confirmed.</p>
@@ -57,19 +51,16 @@ function sendBookingConfirmationEmail($toEmail, $toName, $ref, $date, $items, $t
       </div>
     "
   ]);
-
-  $ch = curl_init('https://api.resend.com/emails');
+  $ch = curl_init('https://api.brevo.com/v3/smtp/email');
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_POST, true);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
   curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $apiKey,
+    'api-key: ' . $apiKey,
     'Content-Type: application/json'
   ]);
-
   $response = curl_exec($ch);
   $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
   curl_close($ch);
-
-  return $httpCode === 200;
+  return $httpCode === 201;
 }
